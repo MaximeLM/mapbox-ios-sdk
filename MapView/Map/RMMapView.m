@@ -164,6 +164,9 @@
     CGPoint _lastContentOffset, _accumulatedDelta;
     CGSize _lastContentSize;
     BOOL _mapScrollViewIsZooming;
+    
+    // flag set during annotation animations
+    BOOL _animating;
 
     BOOL _draggingEnabled, _bouncingEnabled;
 
@@ -392,9 +395,10 @@
         _mapScrollView.frame = bounds;
         _overlayView.frame = bounds;
 
+        // No repositionning of annotations needed
+        _animating = YES;
         [self setCenterProjectedPoint:centerPoint animated:NO];
-
-        [self correctPositionOfAllAnnotations];
+        _animating = NO;
 
         self.minZoom = 0; // force new minZoom calculation
 
@@ -823,26 +827,29 @@
 {
     if (RMProjectedPointEqualToProjectedPoint(centerProjectedPoint, [self centerProjectedPoint]))
         return;
-
+    
     [self registerMoveEventByUser:NO];
-
-//    RMLog(@"Current contentSize: {%.0f,%.0f}, zoom: %f", mapScrollView.contentSize.width, mapScrollView.contentSize.height, self.zoom);
-
+    
+    //    RMLog(@"Current contentSize: {%.0f,%.0f}, zoom: %f", mapScrollView.contentSize.width, mapScrollView.contentSize.height, self.zoom);
+    
     RMProjectedRect planetBounds = _projection.planetBounds;
 	RMProjectedPoint normalizedProjectedPoint;
 	normalizedProjectedPoint.x = centerProjectedPoint.x + fabs(planetBounds.origin.x);
 	normalizedProjectedPoint.y = centerProjectedPoint.y + fabs(planetBounds.origin.y);
-
+    
     [_mapScrollView setContentOffset:CGPointMake(normalizedProjectedPoint.x / _metersPerPixel - _mapScrollView.bounds.size.width/2.0,
-                                                _mapScrollView.contentSize.height - ((normalizedProjectedPoint.y / _metersPerPixel) + _mapScrollView.bounds.size.height/2.0))
-                           animated:animated];
-
-//    RMLog(@"setMapCenterProjectedPoint: {%f,%f} -> {%.0f,%.0f}", centerProjectedPoint.x, centerProjectedPoint.y, mapScrollView.contentOffset.x, mapScrollView.contentOffset.y);
-
+                                                 _mapScrollView.contentSize.height - ((normalizedProjectedPoint.y / _metersPerPixel) + _mapScrollView.bounds.size.height/2.0))
+                            animated:animated];
+    
+    //    RMLog(@"setMapCenterProjectedPoint: {%f,%f} -> {%.0f,%.0f}", centerProjectedPoint.x, centerProjectedPoint.y, mapScrollView.contentOffset.x, mapScrollView.contentOffset.y);
+    
     if ( ! animated)
         [self completeMoveEventAfterDelay:0];
-
-    [self correctPositionOfAllAnnotations];
+    
+    // conditionnal repositionning
+    if (!_animating) {
+        [self correctPositionOfAllAnnotationsIncludingInvisibles:YES animated:animated];
+    }
 }
 
 // ===
@@ -922,6 +929,7 @@
 
 - (void)setZoom:(float)newZoom atCoordinate:(CLLocationCoordinate2D)newCenter animated:(BOOL)animated
 {
+    _animating = animated || _animating;
     [UIView animateWithDuration:(animated ? 0.3 : 0.0)
                           delay:0.0
                         options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
@@ -933,6 +941,10 @@
                          self.userTrackingMode = RMUserTrackingModeNone;
                      }
                      completion:nil];
+    if (_animating) {
+        [self correctPositionOfAllAnnotationsIncludingInvisibles:YES animated:YES];
+    }
+    _animating = NO;
 }
 
 - (void)zoomByFactor:(float)zoomFactor near:(CGPoint)pivot animated:(BOOL)animated
@@ -973,7 +985,16 @@
                                      ((_mapScrollView.contentOffset.y + pivot.y) - (newZoomSize.height * factorY)) / zoomScale,
                                      newZoomSize.width / zoomScale,
                                      newZoomSize.height / zoomScale);
-        [_mapScrollView zoomToRect:zoomRect animated:animated];
+        
+        // forced animation duration because it depends upon zoom factor and annotations get out of sync
+        [UIView animateWithDuration:(animated ? 0.3 : 0.0)
+                              delay:0.0
+                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
+                         animations:^(void)
+        {
+                             [_mapScrollView zoomToRect:zoomRect animated:NO];
+        }
+                         completion:nil];
     }
     else
     {
@@ -1020,7 +1041,13 @@
     }
 
 //    RMLog(@"zoom in from:%f to:%f by factor:%f around {%f,%f}", [self zoom], newZoom, factor, pivot.x, pivot.y);
+    
+    _animating = _animating || animated;
     [self zoomByFactor:factor near:pivot animated:animated];
+    if (_animating) {
+        [self correctPositionOfAllAnnotationsIncludingInvisibles:YES animated:YES];
+    }
+    _animating = NO;
 }
 
 - (void)zoomOutToNextNativeZoomAt:(CGPoint)pivot
@@ -1323,8 +1350,10 @@
     if (self.userTrackingMode != RMUserTrackingModeNone && wasUserAction)
         self.userTrackingMode = RMUserTrackingModeNone;
     
-    [self correctPositionOfAllAnnotations];
-
+    if (!_animating) {
+        [self correctPositionOfAllAnnotations];
+    }
+    
     if (_zoom < 3 && self.userTrackingMode == RMUserTrackingModeFollowWithHeading)
         self.userTrackingMode = RMUserTrackingModeFollow;
 }
@@ -1444,20 +1473,26 @@
         if (fabsf(_accumulatedDelta.x) < kZoomRectPixelBuffer && fabsf(_accumulatedDelta.y) < kZoomRectPixelBuffer)
         {
             [_overlayView moveLayersBy:_accumulatedDelta];
-            [self performSelector:@selector(correctPositionOfAllAnnotations) withObject:nil afterDelay:0.1];
+            if (!_animating) {
+                [self performSelector:@selector(correctPositionOfAllAnnotations) withObject:nil afterDelay:0.1];
+            }
         }
         else
         {
-            if (_mapScrollViewIsZooming)
+            if (_mapScrollViewIsZooming) {
                 [self correctPositionOfAllAnnotationsIncludingInvisibles:NO animated:YES];
-            else
+            }
+            else {
                 [self correctPositionOfAllAnnotations];
+            }
         }
     }
     else
     {
-        [self correctPositionOfAllAnnotationsIncludingInvisibles:NO animated:(_mapScrollViewIsZooming && !_mapScrollView.zooming)];
-
+        if (!_animating) {
+            [self correctPositionOfAllAnnotationsIncludingInvisibles:NO animated:(_mapScrollViewIsZooming && !_mapScrollView.zooming)];
+        }
+        
         if (_currentAnnotation && ! [_currentAnnotation isKindOfClass:[RMMarker class]])
         {
             // adjust shape annotation callouts for frame changes during zoom
@@ -1794,10 +1829,12 @@
     {
         [_currentCallout dismissCalloutAnimated:animated];
 
-        if (animated)
+        if (animated) {
             [self performSelector:@selector(correctPositionOfAllAnnotations) withObject:nil afterDelay:1.0/3.0];
-        else
+        }
+        else {
             [self correctPositionOfAllAnnotations];
+        }
 
          _currentAnnotation = nil;
          _currentCallout = nil;
