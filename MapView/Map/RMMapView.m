@@ -1295,6 +1295,7 @@
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
+    [self correctPositionOfAllAnnotations];
     [self completeMoveEventAfterDelay:0];
 }
 
@@ -2723,7 +2724,7 @@
 
     if (self.quadTree)
     {
-        if (!correctAllAnnotations || _mapScrollViewIsZooming)
+        if (!correctAllAnnotations)
         {
             for (RMAnnotation *annotation in _visibleAnnotations)
                 [self correctScreenPosition:annotation animated:animated];
