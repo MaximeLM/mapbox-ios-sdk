@@ -400,7 +400,7 @@
         [self setCenterProjectedPoint:centerPoint animated:NO];
         _animating = NO;
 
-        self.minZoom = 0; // force new minZoom calculation
+        self.minZoom = self.minZoom; // force new minZoom calculation
 
         if (_loadingTileView)
             _loadingTileView.mapZooming = NO;
@@ -837,6 +837,7 @@
 	normalizedProjectedPoint.x = centerProjectedPoint.x + fabs(planetBounds.origin.x);
 	normalizedProjectedPoint.y = centerProjectedPoint.y + fabs(planetBounds.origin.y);
     
+    
     [_mapScrollView setContentOffset:CGPointMake(normalizedProjectedPoint.x / _metersPerPixel - _mapScrollView.bounds.size.width/2.0,
                                                  _mapScrollView.contentSize.height - ((normalizedProjectedPoint.y / _metersPerPixel) + _mapScrollView.bounds.size.height/2.0))
                             animated:animated];
@@ -986,7 +987,7 @@
                                      newZoomSize.width / zoomScale,
                                      newZoomSize.height / zoomScale);
         
-        // forced animation duration because it depends upon zoom factor and annotations get out of sync
+        // forced animation duration
         [UIView animateWithDuration:(animated ? 0.3 : 0.0)
                               delay:0.0
                             options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
@@ -2369,6 +2370,10 @@
     _mapScrollView.zoomScale = exp2f(_zoom);
 
     [self completeZoomEventAfterDelay:0];
+    
+    if (!_animating) {
+        [self correctPositionOfAllAnnotationsIncludingInvisibles:YES animated:NO];
+    }
 }
 
 - (float)tileSourcesZoom
