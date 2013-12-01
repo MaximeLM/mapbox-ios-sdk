@@ -186,6 +186,7 @@
     
     // flag set during annotation animations
     BOOL _animating;
+    BOOL _zoomingOut;
 
     BOOL _draggingEnabled, _bouncingEnabled;
 
@@ -1218,7 +1219,15 @@
     }
 
 //    RMLog(@"zoom out from:%f to:%f by factor:%f around {%f,%f}", [self zoom], newZoom, factor, pivot.x, pivot.y);
+    
+    _animating = _animating || animated;
+    _zoomingOut = _animating;
     [self zoomByFactor:factor near:pivot animated:animated];
+    if (_animating) {
+        [self correctPositionOfAllAnnotationsIncludingInvisibles:YES animated:YES];
+    }
+    _zoomingOut = NO;
+    _animating = NO;
 }
 
 #pragma mark -
@@ -1632,7 +1641,7 @@
             if (_mapScrollViewIsZooming) {
                 [self correctPositionOfAllAnnotationsIncludingInvisibles:NO animated:YES];
             }
-            else {
+            else if (!_zoomingOut) {
                 [self correctPositionOfAllAnnotations];
             }
         }
