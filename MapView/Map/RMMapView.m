@@ -240,6 +240,7 @@
 @synthesize userTrackingMode = _userTrackingMode;
 @synthesize displayHeadingCalibration = _displayHeadingCalibration;
 @synthesize missingTilesDepth = _missingTilesDepth;
+@synthesize bottomConstraintOffset=_bottomConstraintOffset;
 @synthesize debugTiles = _debugTiles;
 @synthesize hideAttribution = _hideAttribution;
 @synthesize showLogoBug = _showLogoBug;
@@ -276,6 +277,7 @@
 
     _adjustTilesForRetinaDisplay = NO;
     _missingTilesDepth = 1;
+    _bottomConstraintOffset = 0;
     _debugTiles = NO;
 
     _orderMarkersByYPosition = YES;
@@ -546,7 +548,7 @@
              ! [[viewController.view valueForKeyPath:@"constraints.secondItem"] containsObject:_logoBug])
         {
             CGFloat leftSpacing   = _logoBug.frame.origin.x;
-            CGFloat bottomSpacing = _logoBug.superview.bounds.size.height - _logoBug.frame.origin.y - _logoBug.bounds.size.height;
+            CGFloat bottomSpacing = _logoBug.superview.bounds.size.height - _logoBug.frame.origin.y - _logoBug.bounds.size.height + _bottomConstraintOffset;
 
             NSString *formatString;
             NSDictionary *views;
@@ -2602,6 +2604,12 @@
         decelerationRate = UIScrollViewDecelerationRateFast;
 
     [_mapScrollView setDecelerationRate:decelerationRate];
+}
+
+- (void)setBottomConstraintOffset:(float)bottomConstraintOffset
+{
+    _bottomConstraintOffset = bottomConstraintOffset;
+    [self setNeedsUpdateConstraints];
 }
 
 - (BOOL)draggingEnabled

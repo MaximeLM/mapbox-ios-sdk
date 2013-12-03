@@ -134,6 +134,9 @@ typedef enum : NSUInteger {
 /** A Boolean value indicating whether to show a small logo in the corner of the map view. Defaults to `YES`. */
 @property (nonatomic, assign) BOOL showLogoBug;
 
+/** An Integer value specifying an offset to apply to bottom constraints (MapBox logo and attribution button) */
+@property (nonatomic, assign) float bottomConstraintOffset;
+
 #pragma mark - Initializers
 
 /** @name Initializing a Map View */
