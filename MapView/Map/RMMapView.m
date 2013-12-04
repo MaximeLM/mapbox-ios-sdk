@@ -165,9 +165,9 @@
     CGSize _lastContentSize;
     BOOL _mapScrollViewIsZooming;
     
-    // flag set during annotation animations
-    BOOL _animating;
-    BOOL _zoomingOut;
+    BOOL _animating; // flag set during annotation animations
+    BOOL _zoomingOut; // flag set while zooming out after two finger tap
+    BOOL _forceCorrectAnnotationPosition; // prevent annotation position correction from being cancelled
 
     BOOL _draggingEnabled, _bouncingEnabled;
 
@@ -316,6 +316,12 @@
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleDidChangeOrientationNotification:)
                                                  name:UIApplicationDidChangeStatusBarOrientationNotification
+                                               object:nil];
+    
+    // Observe status bar modifications (in-call or shared connection)
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleDidChangeStatusBarFrameNotification:)
+                                                 name:UIApplicationDidChangeStatusBarFrameNotification
                                                object:nil];
 
     RMLog(@"Map initialised. tileSource:%@, minZoom:%f, maxZoom:%f, zoom:%f at {%f,%f}", newTilesource, self.minZoom, self.maxZoom, self.zoom, initialCenterCoordinate.longitude, initialCenterCoordinate.latitude);
@@ -469,6 +475,16 @@
         [_mapScrollView setZoomScale:_mapScrollView.minimumZoomScale animated:YES];
 
     [self updateHeadingForDeviceOrientation];
+    
+    _forceCorrectAnnotationPosition = YES;
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(correctPositionOfAllAnnotations) object:nil];
+    [self performSelector:@selector(correctPositionOfAllAnnotations) withObject:nil afterDelay:0.3];
+}
+
+- (void)handleDidChangeStatusBarFrameNotification:(NSNotification *)notification
+{
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(correctPositionOfAllAnnotations) object:nil];
+    [self performSelector:@selector(correctPositionOfAllAnnotations) withObject:nil afterDelay:0.3];
 }
 
 - (void)layoutSubviews
@@ -1472,7 +1488,10 @@
     _zoom = (_zoom > _maxZoom) ? _maxZoom : _zoom;
     _zoom = (_zoom < _minZoom) ? _minZoom : _zoom;
 
-    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(correctPositionOfAllAnnotations) object:nil];
+    if (!_forceCorrectAnnotationPosition)
+    {
+        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(correctPositionOfAllAnnotations) object:nil];
+    }
 
     if (_zoom == _lastZoom)
     {
@@ -2872,6 +2891,7 @@
 
 - (void)correctPositionOfAllAnnotations
 {
+    _forceCorrectAnnotationPosition = NO;
     [self correctPositionOfAllAnnotationsIncludingInvisibles:YES animated:NO];
 }
 
