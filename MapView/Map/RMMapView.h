@@ -346,6 +346,10 @@ typedef enum : NSUInteger {
 /** The annotation that is currently selected. */
 @property (nonatomic, strong) RMAnnotation *selectedAnnotation;
 
+/** Methods used to correct annotation animations during screen rotation or in-call animations */
+- (void)frameAnimationWillStart;
+- (void)frameAnimationDidFinish;
+
 #pragma mark - TileSources
 
 @property (nonatomic, strong) RMQuadTree *quadTree;
