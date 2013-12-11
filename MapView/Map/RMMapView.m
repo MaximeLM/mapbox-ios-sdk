@@ -2026,15 +2026,17 @@
 {
     [self registerMoveEventByUser:NO];
 
-    CGPoint contentOffset = _mapScrollView.contentOffset;
+    CGPoint oldContentOffset = _mapScrollView.contentOffset;
+    CGPoint newContentOffset = CGPointMake(oldContentOffset.x - offset.width, oldContentOffset.y - offset.height);
 
-    contentOffset.x -= offset.width;
-    contentOffset.y -= offset.height;
+    if (CGPointEqualToPoint(oldContentOffset, newContentOffset)) {
+        // Show annotation without delay if offset is too small for contentOffset precision
+        return 0.0;
+    }
+    
+    // removed additional y offset
 
-    if (RMPostVersion7)
-        contentOffset.y -= [[[self viewController] topLayoutGuide] length];
-
-    [_mapScrollView setContentOffset:contentOffset animated:YES];
+    [_mapScrollView setContentOffset:newContentOffset animated:YES];
 
     [self completeMoveEventAfterDelay:kSMCalloutViewRepositionDelayForUIScrollView];
 
