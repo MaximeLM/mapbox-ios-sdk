@@ -3211,6 +3211,7 @@
         {
             [_overlayView addSublayer:annotation.layer];
             [_visibleAnnotations addObject:annotation];
+            annotation.layer.transform = _annotationTransform;
         }
 
         [self correctOrderingOfAllAnnotations];

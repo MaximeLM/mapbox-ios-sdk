@@ -96,12 +96,14 @@
     for (RMAnnotation *annotation in disabledVisibleAnnotations)
         annotation.layer.hidden = YES;
 
-    if (mapView.userLocation.enabled && mapView.userTrackingMode == RMUserTrackingModeFollowWithHeading)
+    BOOL userLocationHidden = mapView.userLocation.layer.hidden;
+    
+    if (mapView.userLocation.enabled && mapView.userTrackingMode == RMUserTrackingModeFollowWithHeading && userLocationHidden)
         mapView.userLocation.layer.hidden = NO;
 
     CALayer *hit = [self.layer hitTest:point];
 
-    if (mapView.userLocation.enabled && mapView.userTrackingMode == RMUserTrackingModeFollowWithHeading)
+    if (mapView.userLocation.enabled && mapView.userTrackingMode == RMUserTrackingModeFollowWithHeading && userLocationHidden)
         mapView.userLocation.layer.hidden = YES;
 
     for (RMAnnotation *annotation in disabledVisibleAnnotations)
