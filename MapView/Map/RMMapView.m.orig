@@ -1085,6 +1085,24 @@
 
 - (void)setZoom:(float)newZoom atCoordinate:(CLLocationCoordinate2D)newCenter animated:(BOOL)animated
 {
+<<<<<<< HEAD
+    _animating = animated || _animating;
+    [UIView animateWithDuration:(animated ? 0.3 : 0.0)
+                          delay:0.0
+                        options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
+                     animations:^(void)
+                     {
+                         [self setZoom:newZoom];
+                         [self setCenterCoordinate:newCenter animated:NO];
+
+                         self.userTrackingMode = RMUserTrackingModeNone;
+                     }
+                     completion:nil];
+    if (_animating) {
+        [self correctPositionOfAllAnnotationsIncludingInvisibles:YES animated:YES];
+    }
+    _animating = NO;
+=======
     if (animated)
     {
         [UIView animateWithDuration:0.3
@@ -1106,6 +1124,7 @@
 
         self.userTrackingMode = RMUserTrackingModeNone;
     }
+>>>>>>> develop_upstream
 }
 
 - (void)zoomByFactor:(float)zoomFactor near:(CGPoint)pivot animated:(BOOL)animated
@@ -1648,9 +1667,28 @@
     }
     else
     {
+<<<<<<< HEAD
         if (!_animating) {
             [self correctPositionOfAllAnnotationsIncludingInvisibles:NO animated:(_mapScrollViewIsZooming && !_mapScrollView.zooming)];
         }
+        
+        if (_currentAnnotation && ! [_currentAnnotation isKindOfClass:[RMMarker class]])
+        {
+            // adjust shape annotation callouts for frame changes during zoom
+            //
+            _currentCallout.delegate = nil;
+
+            [_currentCallout presentCalloutFromRect:_currentAnnotation.layer.bounds
+                                            inLayer:_currentAnnotation.layer
+                                 constrainedToLayer:self.layer
+                           permittedArrowDirections:SMCalloutArrowDirectionDown
+                                           animated:NO];
+
+            _currentCallout.delegate = self;
+        }
+=======
+        [self correctPositionOfAllAnnotationsIncludingInvisibles:NO animated:(_mapScrollViewIsZooming && !_mapScrollView.zooming)];
+>>>>>>> develop_upstream
 
         _lastZoom = _zoom;
     }
@@ -2975,7 +3013,7 @@
 
     if (self.quadTree)
     {
-        if (!correctAllAnnotations || _mapScrollViewIsZooming)
+        if (!correctAllAnnotations)
         {
             for (RMAnnotation *annotation in _visibleAnnotations)
                 [self correctScreenPosition:annotation animated:animated];
