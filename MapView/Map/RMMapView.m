@@ -3204,7 +3204,7 @@
     {
         [self correctScreenPosition:annotation animated:NO];
 
-        if (annotation.layer == nil && [annotation isAnnotationOnScreen] && _delegateHasLayerForAnnotation)
+        if (annotation.layer == nil && ([annotation isAnnotationOnScreen] || self.userTrackingMode == RMUserTrackingModeFollowWithHeading) && _delegateHasLayerForAnnotation)
             annotation.layer = [_delegate mapView:self layerForAnnotation:annotation];
 
         if (annotation.layer)
