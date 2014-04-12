@@ -287,6 +287,8 @@ typedef enum : NSUInteger {
 
 - (void)setProjectedConstraintsSouthWest:(RMProjectedPoint)southWest northEast:(RMProjectedPoint)northEast;
 
+- (void)setConstraintsWithPlanetBounds;
+
 #pragma mark - Snapshots
 
 /** @name Capturing Snapshots of the Map View */
