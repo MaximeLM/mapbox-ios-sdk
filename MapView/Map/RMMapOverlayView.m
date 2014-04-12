@@ -112,4 +112,24 @@
     return hit;
 }
 
+- (NSArray *)overlayHitTestForMultipleAnnotations:(CGPoint)point
+{
+    RMMapView *mapView = ((RMMapView *)self.superview);
+    
+    NSMutableArray *result = [NSMutableArray array];
+    
+    for (RMAnnotation *annotation in mapView.visibleAnnotations) {
+        
+        CGRect hitZone, remainder;
+        CGRectDivide(annotation.layer.bounds, &hitZone, &remainder, annotation.layer.frame.size.height / 2.0, CGRectMinYEdge);
+        CGPoint hitPoint = [annotation.layer convertPoint:point fromLayer:annotation.layer.superlayer];
+        
+        if (CGRectContainsPoint(hitZone, hitPoint)) {
+            [result addObject:annotation];
+        }
+    }
+    
+    return result;
+}
+
 @end

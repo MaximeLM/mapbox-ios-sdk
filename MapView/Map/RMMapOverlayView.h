@@ -44,4 +44,6 @@
 
 - (CALayer *)overlayHitTest:(CGPoint)point;
 
+- (NSArray *)overlayHitTestForMultipleAnnotations:(CGPoint)point;
+
 @end

@@ -141,6 +141,7 @@
     BOOL _delegateHasSingleTapTwoFingersOnMap;
     BOOL _delegateHasLongPressOnMap;
     BOOL _delegateHasTapOnAnnotation;
+    BOOL _delegateHasTapOnAnnotations;
     BOOL _delegateHasDoubleTapOnAnnotation;
     BOOL _delegateHasLongPressOnAnnotation;
     BOOL _delegateHasTapOnCalloutAccessoryControlForAnnotation;
@@ -684,6 +685,7 @@
     _delegateHasLongPressOnMap = [_delegate respondsToSelector:@selector(longPressOnMap:at:)];
 
     _delegateHasTapOnAnnotation = [_delegate respondsToSelector:@selector(tapOnAnnotation:onMap:)];
+    _delegateHasTapOnAnnotations = [_delegate respondsToSelector:@selector(tapOnAnnotations:onMap:)];
     _delegateHasDoubleTapOnAnnotation = [_delegate respondsToSelector:@selector(doubleTapOnAnnotation:onMap:)];
     _delegateHasLongPressOnAnnotation = [_delegate respondsToSelector:@selector(longPressOnAnnotation:onMap:)];
     _delegateHasTapOnCalloutAccessoryControlForAnnotation = [_delegate respondsToSelector:@selector(tapOnCalloutAccessoryControl:forAnnotation:onMap:)];
@@ -1407,7 +1409,7 @@
     doubleTapRecognizer.numberOfTapsRequired = 2;
     doubleTapRecognizer.delegate = self;
 
-    UITapGestureRecognizer *singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
+    UITapGestureRecognizer *singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTapMultipleAnnotations:)];
     singleTapRecognizer.numberOfTouchesRequired = 1;
     [singleTapRecognizer requireGestureRecognizerToFail:doubleTapRecognizer];
     singleTapRecognizer.delegate = self;
@@ -1725,6 +1727,25 @@
     else
     {
         [self singleTapAtPoint:[recognizer locationInView:self]];
+    }
+}
+
+- (void)handleSingleTapMultipleAnnotations:(UIGestureRecognizer *)recognizer
+{
+    NSArray *hits = [_overlayView overlayHitTestForMultipleAnnotations:[recognizer locationInView:self]];
+    
+    if (_currentAnnotation && ! [hits containsObject:_currentAnnotation])
+    {
+        [self deselectAnnotation:_currentAnnotation animated:YES];
+    }
+    
+    if ([hits count] == 0)
+    {
+        [self singleTapAtPoint:[recognizer locationInView:self]];
+    } else if ([hits count] == 1) {
+        [self tapOnAnnotation:[hits objectAtIndex:0] atPoint:[recognizer locationInView:self]];
+    } else if (_delegateHasTapOnAnnotations) {
+        [_delegate tapOnAnnotations:hits onMap:self];
     }
 }
 
