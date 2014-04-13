@@ -99,6 +99,14 @@
 
 //    NSLog(@"drawLayer: {{%f,%f},{%f,%f}}", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
 
+    int dx = 0, dy = 0;
+    if (zoom > 0) {
+        dx = pow(2, zoom-1);
+    }
+    if (zoom > 1) {
+        dy = pow(2, zoom-2);
+    }
+    
     if (self.useSnapshotRenderer)
     {
         zoom = (short)ceilf(_mapView.adjustedZoomForRetinaDisplay);
@@ -131,8 +139,8 @@
     }
     else
     {
-        int x = floor(rect.origin.x / rect.size.width),
-            y = floor(fabs(rect.origin.y / rect.size.height));
+        int x = floor(rect.origin.x / rect.size.width) + dx,
+            y = floor(fabs(rect.origin.y / rect.size.height)) + dy;
 
         if (_mapView.adjustTilesForRetinaDisplay && _mapView.screenScale > 1.0)
         {

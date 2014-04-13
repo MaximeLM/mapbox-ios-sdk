@@ -58,7 +58,7 @@ static RMProjection *_latitudeLongitudeProjection = nil;
     }
     else
     {
-        RMProjectedRect theBounds = RMProjectedRectMake(-20037508.34, -20037508.34, 20037508.34 * 2, 20037508.34 * 2);
+        RMProjectedRect theBounds = RMProjectedRectMake(0.0, -30056262.51, 20037508.34 * 2, 20037508.34 * 2);
 
         _googleProjection = [[RMProjection alloc] initWithString:@"+title= Google Mercator EPSG:900913 +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs"
                                                         inBounds:theBounds];
