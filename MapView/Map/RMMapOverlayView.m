@@ -123,6 +123,14 @@
         if (!annotation.isUserLocationAnnotation) {
             CGRect hitZone, remainder;
             CGRectDivide(annotation.layer.bounds, &hitZone, &remainder, annotation.layer.frame.size.height / 2.0, CGRectMinYEdge);
+            
+            // Hit zone must be at least 44pt wide
+            CGFloat delta = 44.0 - hitZone.size.width;
+            if (delta > 0.0) {
+                hitZone.origin.x = hitZone.origin.x - delta / 2.0;
+                hitZone.size.width = hitZone.size.width + delta;
+            }
+            
             CGPoint hitPoint = [annotation.layer convertPoint:point fromLayer:annotation.layer.superlayer];
             
             if (CGRectContainsPoint(hitZone, hitPoint)) {
