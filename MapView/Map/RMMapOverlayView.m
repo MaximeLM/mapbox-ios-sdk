@@ -118,20 +118,36 @@
     
     NSMutableArray *result = [NSMutableArray array];
     
-    for (RMAnnotation *annotation in mapView.visibleAnnotations) {
+    for (RMAnnotation *annotation in mapView.annotations) {
         
         if (!annotation.isUserLocationAnnotation) {
             CGRect hitZone, remainder;
-            CGRectDivide(annotation.layer.bounds, &hitZone, &remainder, annotation.layer.frame.size.height / 2.0, CGRectMinYEdge);
+            CGRectDivide(annotation.layer.frame, &hitZone, &remainder, annotation.layer.frame.size.height / 2.0, CGRectMinYEdge);
             
-            // Hit zone must be at least 44pt wide
+            CGPoint hitPoint = point;
+            if (mapView.userTrackingMode == RMUserTrackingModeFollowWithHeading) {
+                // Point rotation
+                CGAffineTransform translationTransform = CGAffineTransformMakeTranslation(mapView.center.x, mapView.center.y);
+                CGAffineTransform rotationTransform = CATransform3DGetAffineTransform(annotation.layer.transform);
+                CGAffineTransform customRotation = CGAffineTransformConcat(CGAffineTransformConcat( CGAffineTransformInvert(translationTransform), rotationTransform), translationTransform);
+                hitPoint = CGPointApplyAffineTransform(hitPoint, customRotation);
+                
+                translationTransform = CGAffineTransformMakeTranslation(hitZone.origin.x + hitZone.size.width / 2.0, hitZone.origin.y + hitZone.size.height);
+                customRotation = CGAffineTransformConcat(CGAffineTransformConcat( CGAffineTransformInvert(translationTransform), rotationTransform), translationTransform);
+                hitZone = CGRectApplyAffineTransform(hitZone, customRotation);
+            }
+            
+            // Hit zone must be at least 44pt
             CGFloat delta = 44.0 - hitZone.size.width;
             if (delta > 0.0) {
                 hitZone.origin.x = hitZone.origin.x - delta / 2.0;
                 hitZone.size.width = hitZone.size.width + delta;
             }
-            
-            CGPoint hitPoint = [annotation.layer convertPoint:point fromLayer:annotation.layer.superlayer];
+            delta = 44.0 - hitZone.size.height;
+            if (delta > 0.0) {
+                hitZone.origin.y = hitZone.origin.y - delta / 2.0;
+                hitZone.size.height = hitZone.size.height + delta;
+            }
             
             if (CGRectContainsPoint(hitZone, hitPoint)) {
                 [result addObject:annotation];
