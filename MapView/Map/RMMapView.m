@@ -528,20 +528,17 @@
         if ( ! [[viewController.view valueForKeyPath:@"constraints.firstItem"]  containsObject:container] &&
              ! [[viewController.view valueForKeyPath:@"constraints.secondItem"] containsObject:container])
         {
-            CGFloat topSpacing   = container.frame.origin.y;
-            CGFloat rightSpacing = container.superview.bounds.size.width - container.frame.origin.x;
-
             [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[topLayoutGuide]-topSpacing-[container]"
                                                                                         options:0
-                                                                                        metrics:@{ @"topSpacing" : @(topSpacing) }
+                                                                                        metrics:@{ @"topSpacing"     : @(5) }
                                                                                           views:@{ @"topLayoutGuide" : viewController.topLayoutGuide,
                                                                                                    @"container"      : container }]];
 
 
             [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[container]-rightSpacing-|"
                                                                                         options:0
-                                                                                        metrics:@{ @"rightSpacing" : @(rightSpacing) }
-                                                                                          views:@{ @"container" : container }]];
+                                                                                        metrics:@{ @"rightSpacing" : @(5) }
+                                                                                          views:@{ @"container"    : container }]];
         }
     }
 
@@ -550,11 +547,10 @@
         if ( ! [[viewController.view valueForKeyPath:@"constraints.firstItem"]  containsObject:_logoBug] &&
              ! [[viewController.view valueForKeyPath:@"constraints.secondItem"] containsObject:_logoBug])
         {
-            CGFloat leftSpacing   = _logoBug.frame.origin.x;
-            CGFloat bottomSpacing = _logoBug.superview.bounds.size.height - _logoBug.frame.origin.y - _logoBug.bounds.size.height + _bottomConstraintOffset;
-
             NSString *formatString;
             NSDictionary *views;
+            
+            CGFloat bottomSpacing = 4.0 + _bottomConstraintOffset;
 
             if (RMPostVersion7)
             {
@@ -575,7 +571,7 @@
 
             [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-leftSpacing-[logoBug]"
                                                                                         options:0
-                                                                                        metrics:@{ @"leftSpacing" : @(leftSpacing) }
+                                                                                        metrics:@{ @"leftSpacing" : @(8) }
                                                                                           views:views]];
         }
     }
@@ -585,9 +581,6 @@
         if ( ! [[viewController.view valueForKeyPath:@"constraints.firstItem"]  containsObject:_attributionButton] &&
              ! [[viewController.view valueForKeyPath:@"constraints.secondItem"] containsObject:_attributionButton])
         {
-            CGFloat rightSpacing  = _attributionButton.superview.bounds.size.width - _attributionButton.frame.origin.x - _attributionButton.bounds.size.width;
-            CGFloat bottomSpacing = _attributionButton.superview.bounds.size.height - _attributionButton.frame.origin.y - _attributionButton.bounds.size.height;
-
             NSString *formatString;
             NSDictionary *views;
 
@@ -605,12 +598,12 @@
 
             [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:formatString
                                                                                         options:0
-                                                                                        metrics:@{ @"bottomSpacing" : @(bottomSpacing) }
+                                                                                        metrics:@{ @"bottomSpacing" : @(8) }
                                                                                           views:views]];
 
             [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[attributionButton]-rightSpacing-|"
                                                                                         options:0
-                                                                                        metrics:@{ @"rightSpacing" : @(rightSpacing) }
+                                                                                        metrics:@{ @"rightSpacing" : @(8) }
                                                                                           views:views]];
         }
     }
@@ -3332,6 +3325,17 @@
         self.userLocation = [RMUserLocation annotationWithMapView:self coordinate:CLLocationCoordinate2DMake(MAXFLOAT, MAXFLOAT) andTitle:nil];
 
         _locationManager = [CLLocationManager new];
+
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+        // enable iOS 8+ location authorization API
+        //
+        if ([CLLocationManager instancesRespondToSelector:@selector(requestWhenInUseAuthorization)])
+        {
+            NSAssert([[[NSBundle mainBundle] infoDictionary] valueForKey:@"NSLocationWhenInUseUsageDescription"], @"For iOS 8 and above, your app must have a value for NSLocationWhenInUseUsageDescription in its Info.plist");
+            [_locationManager requestWhenInUseAuthorization];
+        }
+#endif
+
         _locationManager.headingFilter = 5.0;
         _locationManager.delegate = self;
         [_locationManager startUpdatingLocation];
@@ -3528,7 +3532,12 @@
         self.userLocation.location = newLocation;
 
         if (_delegateHasDidUpdateUserLocation)
+        {
             [_delegate mapView:self didUpdateUserLocation:self.userLocation];
+
+            if ( ! _showsUserLocation)
+                return;
+        }
     }
 
     if (self.userTrackingMode != RMUserTrackingModeNone)
@@ -3704,9 +3713,16 @@
     self.userLocation.heading = newHeading;
 
     if (_delegateHasDidUpdateUserLocation)
+    {
         [_delegate mapView:self didUpdateUserLocation:self.userLocation];
 
-    if (newHeading.trueHeading != 0 && self.userTrackingMode == RMUserTrackingModeFollowWithHeading)
+        if ( ! _showsUserLocation)
+            return;
+    }
+
+    CLLocationDirection headingDirection = (newHeading.trueHeading > 0 ? newHeading.trueHeading : newHeading.magneticHeading);
+
+    if (headingDirection != 0 && self.userTrackingMode == RMUserTrackingModeFollowWithHeading)
     {
         if (_userHeadingTrackingView.alpha < 1.0)
             [UIView animateWithDuration:0.5 animations:^(void) { _userHeadingTrackingView.alpha = 1.0; }];
@@ -3720,7 +3736,7 @@
                             options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
                          animations:^(void)
                          {
-                             CGFloat angle = (M_PI / -180) * newHeading.trueHeading;
+                             CGFloat angle = (M_PI / -180) * headingDirection;
 
                              _mapTransform = CGAffineTransformMakeRotation(angle);
                              _annotationTransform = CATransform3DMakeAffineTransform(CGAffineTransformMakeRotation(-angle));
@@ -3880,8 +3896,8 @@
         _attributionButton.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleLeftMargin;
         _attributionButton.translatesAutoresizingMaskIntoConstraints = NO;
         [_attributionButton addTarget:self action:@selector(showAttribution:) forControlEvents:UIControlEventTouchUpInside];
-        _attributionButton.frame = CGRectMake(self.bounds.size.width  - 30,
-                                              self.bounds.size.height - 30,
+        _attributionButton.frame = CGRectMake(self.bounds.size.width - _attributionButton.bounds.size.width - 8,
+                                              self.bounds.size.height - _attributionButton.bounds.size.height - 8,
                                               _attributionButton.bounds.size.width,
                                               _attributionButton.bounds.size.height);
         [self addSubview:_attributionButton];
