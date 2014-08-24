@@ -1727,7 +1727,7 @@
 {
     NSArray *hits = [_overlayView overlayHitTestForMultipleAnnotations:[recognizer locationInView:self]];
     
-    if (_currentAnnotation && ! [hits containsObject:_currentAnnotation])
+    if (_currentAnnotation && ! [hits containsObject:_currentAnnotation] && [hits count] <= 1)
     {
         [self deselectAnnotation:_currentAnnotation animated:YES];
     }
