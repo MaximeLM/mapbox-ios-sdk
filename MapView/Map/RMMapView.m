@@ -525,6 +525,8 @@
         //
         UIView *container = _compassButton.superview;
 
+        CGFloat rightSpacing = container.superview.bounds.size.width - container.frame.origin.x;
+
         if ( ! [[viewController.view valueForKeyPath:@"constraints.firstItem"]  containsObject:container] &&
              ! [[viewController.view valueForKeyPath:@"constraints.secondItem"] containsObject:container])
         {
@@ -537,7 +539,7 @@
 
             [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[container]-rightSpacing-|"
                                                                                         options:0
-                                                                                        metrics:@{ @"rightSpacing" : @(5) }
+                                                                                        metrics:@{ @"rightSpacing" : @(rightSpacing) }
                                                                                           views:@{ @"container"    : container }]];
         }
     }
