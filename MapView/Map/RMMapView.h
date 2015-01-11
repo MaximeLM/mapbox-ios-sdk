@@ -537,4 +537,10 @@ typedef enum : NSUInteger {
 *   @param animated Whether changes to the map center or rotation should be animated when the mode is changed. */
 - (void)setUserTrackingMode:(RMUserTrackingMode)mode animated:(BOOL)animated;
 
+/** Whether the map view should display an angle image when in heading tracking mode. The default value is `YES`. */
+@property (nonatomic, assign) BOOL displayHeadingAngle;
+
+/** Whether the map view should enable the compass button. The default value is `YES`. */
+@property (nonatomic, assign) BOOL enableCompassButton;
+
 @end

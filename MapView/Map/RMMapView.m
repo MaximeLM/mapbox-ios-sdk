@@ -334,6 +334,9 @@
     }
 
     self.displayHeadingCalibration = YES;
+    
+    self.displayHeadingAngle = YES;
+    self.enableCompassButton = YES;
 
     _mapTransform = CGAffineTransformIdentity;
     _annotationTransform = CATransform3DIdentity;
@@ -1752,7 +1755,7 @@
 
         if (self.zoomingInPivotsAroundCenter)
         {
-            [self zoomInToNextNativeZoomAt:[self convertPoint:self.center fromView:self.superview] animated:YES];
+            [self zoomInToNextNativeZoomAt:[self coordinateToPixel:self.userLocation.location.coordinate] animated:YES];
         }
         else if (self.userTrackingMode != RMUserTrackingModeNone && fabsf(aPoint.x - [self coordinateToPixel:self.userLocation.location.coordinate].x) < 75 && fabsf(aPoint.y - [self coordinateToPixel:self.userLocation.location.coordinate].y) < 75)
         {
@@ -3485,24 +3488,26 @@
         {
             self.showsUserLocation = YES;
 
-            _userHeadingTrackingView = [[UIImageView alloc] initWithImage:[self headingAngleImageForAccuracy:MAXFLOAT]];
-
-            _userHeadingTrackingView.frame = CGRectMake((self.bounds.size.width  / 2) - (_userHeadingTrackingView.bounds.size.width / 2),
-                                                        (self.bounds.size.height / 2) - _userHeadingTrackingView.bounds.size.height,
-                                                        _userHeadingTrackingView.bounds.size.width,
-                                                        _userHeadingTrackingView.bounds.size.height * 2);
-
-            _userHeadingTrackingView.contentMode = UIViewContentModeTop;
-
-            _userHeadingTrackingView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin  |
-                                                        UIViewAutoresizingFlexibleRightMargin |
-                                                        UIViewAutoresizingFlexibleTopMargin   |
-                                                        UIViewAutoresizingFlexibleBottomMargin;
-
-            _userHeadingTrackingView.alpha = 0.0;
-
-            [self insertSubview:_userHeadingTrackingView belowSubview:_overlayView];
-
+            if (self.displayHeadingAngle) {
+                _userHeadingTrackingView = [[UIImageView alloc] initWithImage:[self headingAngleImageForAccuracy:MAXFLOAT]];
+                
+                _userHeadingTrackingView.frame = CGRectMake((self.bounds.size.width  / 2) - (_userHeadingTrackingView.bounds.size.width / 2),
+                                                            (self.bounds.size.height / 2) - _userHeadingTrackingView.bounds.size.height,
+                                                            _userHeadingTrackingView.bounds.size.width,
+                                                            _userHeadingTrackingView.bounds.size.height * 2);
+                
+                _userHeadingTrackingView.contentMode = UIViewContentModeTop;
+                
+                _userHeadingTrackingView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin  |
+                UIViewAutoresizingFlexibleRightMargin |
+                UIViewAutoresizingFlexibleTopMargin   |
+                UIViewAutoresizingFlexibleBottomMargin;
+                
+                _userHeadingTrackingView.alpha = 0.0;
+                
+                [self insertSubview:_userHeadingTrackingView belowSubview:_overlayView];
+            }
+            
             if (self.zoom < 3)
                 [self zoomByFactor:exp2f(3 - [self zoom]) near:self.center animated:YES];
 
@@ -3817,7 +3822,9 @@
 
 - (void)tappedHeadingCompass:(id)sender
 {
-    self.userTrackingMode = RMUserTrackingModeFollow;
+    if (self.enableCompassButton) {
+        self.userTrackingMode = RMUserTrackingModeFollow;
+    }
 }
 
 - (UIImage *)trackingDotHaloImage
