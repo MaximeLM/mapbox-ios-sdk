@@ -2774,6 +2774,16 @@
     _showLogoBug = showLogoBug;
 }
 
+- (BOOL)scrollViewInteractionEnabled
+{
+    return _mapScrollView.userInteractionEnabled;
+}
+
+- (void)setScrollViewInteractionEnabled:(BOOL)scrollViewInteractionEnabled
+{
+    _mapScrollView.userInteractionEnabled = scrollViewInteractionEnabled;
+}
+
 - (void)tintColorDidChange
 {
     // update user location annotations

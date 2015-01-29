@@ -139,6 +139,9 @@ typedef enum : NSUInteger {
 /** An Integer value specifying an offset to apply to bottom constraints (MapBox logo and attribution button) */
 @property (nonatomic, assign) float bottomConstraintOffset;
 
+/** Enables or disables scroll view interaction */
+@property (nonatomic) BOOL scrollViewInteractionEnabled;
+
 #pragma mark - Initializers
 
 /** @name Initializing a Map View */
