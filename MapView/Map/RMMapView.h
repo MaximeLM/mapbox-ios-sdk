@@ -550,4 +550,7 @@ typedef enum : NSUInteger {
 /** Whether the map view should enable the compass button. The default value is `YES`. */
 @property (nonatomic, assign) BOOL enableCompassButton;
 
+/** Whether the map view should hide the compass button. The default value is `NO`. */
+@property (nonatomic, assign) BOOL hideCompassButton;
+
 @end

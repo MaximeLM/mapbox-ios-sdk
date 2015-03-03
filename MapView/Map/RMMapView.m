@@ -357,6 +357,7 @@
     
     self.displayHeadingAngle = YES;
     self.enableCompassButton = YES;
+    self.hideCompassButton = NO;
 
     _mapTransform = CGAffineTransformIdentity;
     _annotationTransform = CATransform3DIdentity;
@@ -2845,6 +2846,14 @@
         _currentCallout.tintColor = self.tintColor;
 }
 
+- (void)setHideCompassButton:(BOOL)hideCompassButton
+{
+    _hideCompassButton = hideCompassButton;
+    if (hideCompassButton) {
+        _compassButton.alpha = 0.0;
+    }
+}
+
 #pragma mark -
 #pragma mark LatLng/Pixel translation functions
 
@@ -3851,7 +3860,9 @@
                              _compassButton.transform = _mapTransform;
                              _overlayView.transform   = _mapTransform;
 
-                             _compassButton.alpha = 1.0;
+                             if (!self.hideCompassButton) {
+                                 _compassButton.alpha = 1.0;
+                             }
 
                              for (RMAnnotation *annotation in _annotations)
                                  if ([annotation.layer isKindOfClass:[RMMarker class]])
