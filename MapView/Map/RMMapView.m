@@ -3814,7 +3814,13 @@
 {
     if (self.displayHeadingCalibration)
         [_locationManager performSelector:@selector(dismissHeadingCalibrationDisplay) withObject:nil afterDelay:10.0];
-
+    
+    BOOL result = NO;
+    
+    if (!manager.heading || manager.heading < 0 || manager.heading > 5) {
+        result = self.displayHeadingCalibration;
+    }
+    
     return self.displayHeadingCalibration;
 }
 
