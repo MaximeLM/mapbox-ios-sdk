@@ -3817,7 +3817,7 @@
     
     BOOL result = NO;
     
-    if (!manager.heading || manager.heading < 0 || manager.heading > 5) {
+    if (!manager.heading || manager.heading.headingAccuracy < 0 || manager.heading.headingAccuracy > 5) {
         result = self.displayHeadingCalibration;
     }
     
