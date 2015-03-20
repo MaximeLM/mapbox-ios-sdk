@@ -144,4 +144,7 @@
 * There is no requirement that a path be closed. */
 - (void)closePath;
 
+/** Sets directly the UIBezierPath */
+- (void)setBezierPath:(UIBezierPath *)bezierPath;
+
 @end

@@ -616,4 +616,9 @@
     }
 }
 
+- (void)setBezierPath:(UIBezierPath *)myBezierPath
+{
+    bezierPath = myBezierPath;
+}
+
 @end
