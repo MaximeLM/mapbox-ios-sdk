@@ -241,6 +241,8 @@ typedef enum : NSUInteger {
 *   @param animated Whether to animate the map change. */
 - (void)setZoom:(float)newZoom atCoordinate:(CLLocationCoordinate2D)newCenter animated:(BOOL)animated;
 
+- (void)setZoom:(float)newZoom atCoordinate:(CLLocationCoordinate2D)newCenter animated:(BOOL)animated keepTrackingMode:(BOOL)keepTrackingMode;
+
 /** Zoom the map by a given factor near a certain point. 
 *   @param zoomFactor The factor by which to zoom the map. 
 *   @param center The point at which to zoom the map. 

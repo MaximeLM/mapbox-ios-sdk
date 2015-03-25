@@ -1149,6 +1149,37 @@
     }
 }
 
+- (void)setZoom:(float)newZoom atCoordinate:(CLLocationCoordinate2D)newCenter animated:(BOOL)animated keepTrackingMode:(BOOL)keepTrackingMode
+{
+    if (!keepTrackingMode) {
+        [self setZoom:newZoom atCoordinate:newCenter animated:animated];
+        return;
+    }
+    
+    if (animated)
+    {
+        [UIView animateWithDuration:0.3
+                              delay:0.0
+                            options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationCurveEaseInOut
+                         animations:^(void)
+                         {
+                             _animating = YES;
+                             _zoomingOut = YES;
+                             [self setZoom:newZoom];
+                             [self setCenterCoordinate:newCenter animated:NO];
+                             _animating = NO;
+                             _zoomingOut = NO;
+                             [self correctPositionOfAllAnnotationsIncludingInvisibles:YES animated:YES];
+                         }
+                         completion:nil];
+    }
+    else
+    {
+        [self setZoom:newZoom];
+        [self setCenterCoordinate:newCenter animated:NO];
+    }
+}
+
 - (void)zoomByFactor:(float)zoomFactor near:(CGPoint)pivot animated:(BOOL)animated
 {
     if (![self tileSourceBoundsContainScreenPoint:pivot])
