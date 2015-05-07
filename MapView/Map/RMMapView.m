@@ -237,6 +237,7 @@
 @synthesize showsUserLocation = _showsUserLocation;
 @synthesize userTrackingMode = _userTrackingMode;
 @synthesize displayHeadingCalibration = _displayHeadingCalibration;
+@synthesize maxHeadingAccuracy = _maxHeadingAccuracy;
 @synthesize missingTilesDepth = _missingTilesDepth;
 @synthesize bottomConstraintOffset=_bottomConstraintOffset;
 @synthesize debugTiles = _debugTiles;
@@ -354,6 +355,7 @@
     }
 
     self.displayHeadingCalibration = YES;
+    self.maxHeadingAccuracy = 10.0;
     
     self.displayHeadingAngle = YES;
     self.enableCompassButton = YES;
@@ -3848,7 +3850,7 @@
     
     BOOL result = NO;
     
-    if (!manager.heading || manager.heading.headingAccuracy < 0 || manager.heading.headingAccuracy > 5) {
+    if (manager.heading.headingAccuracy > self.maxHeadingAccuracy) {
         result = self.displayHeadingCalibration;
     }
     
