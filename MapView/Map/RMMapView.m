@@ -3857,7 +3857,7 @@
         result = self.displayHeadingCalibration;
     }
     
-    return self.displayHeadingCalibration;
+    return result;
 }
 
 - (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)newHeading
