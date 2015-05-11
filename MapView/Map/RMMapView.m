@@ -2883,7 +2883,10 @@
 {
     _hideCompassButton = hideCompassButton;
     if (hideCompassButton) {
+        self.enableCompassButton = NO;
         _compassButton.alpha = 0.0;
+    } else {
+        _compassButton.alpha = 1.0;
     }
 }
 
